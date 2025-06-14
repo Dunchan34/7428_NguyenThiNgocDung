@@ -24,7 +24,7 @@ def draw_game():
             elif x == st.session_state.pipe_x and not (st.session_state.gap_y <= y <= st.session_state.gap_y+2):
                 row += "🟩"
             else:
-                row += "⬛"
+                row += "▫️"  # thay vì ⬛
         st.write(row)
 
 def flap():
