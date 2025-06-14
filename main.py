@@ -69,11 +69,11 @@ def flap():
 
 # ========== Logic ==========
 if st.session_state.running:
-    left, center, right = st.columns([1, 6, 1])
+    # Toàn bộ container có thể click để flap
+    if st.button(" ", key="flap_anywhere", help="Click vào đây để nhảy", use_container_width=True):
+        flap()
 
-    with right:
-        if st.button("⬆️", key="flap_button"):
-            flap()
+    left, center, right = st.columns([1, 6, 1])
 
     with center:
         st.markdown('<div class="game-container">', unsafe_allow_html=True)
