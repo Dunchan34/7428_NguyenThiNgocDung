@@ -16,6 +16,7 @@ st.markdown("""
         font-size: 22px;
         line-height: 1.6;
         box-shadow: 0px 4px 12px rgba(0,0,0,0.2);
+        cursor: pointer;
     }
     .stButton>button {
         background: linear-gradient(90deg, #ff416c, #ff4b2b);
@@ -48,6 +49,7 @@ if 'bird_y' not in st.session_state:
     st.session_state.gap_y = random.randint(2, 7)
     st.session_state.score = 0
     st.session_state.running = True
+    st.session_state.jump_request = False
 
 # ========== Hàm vẽ ==========
 def draw_game():
@@ -69,9 +71,10 @@ def flap():
 
 # ========== Logic ==========
 if st.session_state.running:
-    # Toàn bộ container có thể click để flap
-    if st.button(" ", key="flap_anywhere", help="Click vào đây để nhảy", use_container_width=True):
-        flap()
+    # Click bất kỳ đâu trên khung game để gà nhảy
+    container = st.empty()
+    if container.button("", key="flap_click", help="Nhấp để con gà nhảy", use_container_width=True):
+        st.session_state.jump_request = True
 
     left, center, right = st.columns([1, 6, 1])
 
@@ -81,7 +84,12 @@ if st.session_state.running:
         st.markdown('</div>', unsafe_allow_html=True)
         time.sleep(0.2)
 
-    # Update game state
+    # Xử lý nhảy trước gravity
+    if st.session_state.jump_request:
+        flap()
+        st.session_state.jump_request = False
+
+    # Cập nhật trạng thái game
     st.session_state.bird_y += st.session_state.gravity
     st.session_state.pipe_x -= 1
 
