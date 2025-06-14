@@ -1,49 +1,46 @@
 import streamlit as st
 import random
 
-st.set_page_config(page_title="🧩 Game Xếp Số 8 (8-Puzzle)", layout="centered")
-st.title("🧩 Game Xếp Số 8")
+st.set_page_config(page_title="🔫 Game Bắn Súng", layout="centered")
+st.title("🔫 Game Bắn Súng Đơn Giản")
 
 # ========== Khởi tạo trạng thái ==========
-if 'tiles' not in st.session_state:
-    nums = list(range(1, 9)) + [0]  # 0 là ô trống
-    random.shuffle(nums)
-    st.session_state.tiles = nums
+if 'target' not in st.session_state:
+    st.session_state.score = 0
+    st.session_state.bullets = 5
+    st.session_state.target = random.randint(1, 9)
 
 # ========== Hàm hỗ trợ ==========
-def draw_board(tiles):
+def draw_targets():
+    st.subheader("🎯 Chọn mục tiêu để bắn")
+    cols = st.columns(3)
     for i in range(3):
-        cols = st.columns(3)
         for j in range(3):
-            val = tiles[i * 3 + j]
-            if val == 0:
-                cols[j].button("", key=f"empty-{i}-{j}", disabled=True)
-            else:
-                if cols[j].button(str(val), key=f"btn-{i}-{j}"):
-                    try_move(i, j)
+            idx = i * 3 + j + 1
+            if cols[j].button(f"{idx}", key=f"target-{idx}"):
+                shoot(idx)
 
-def try_move(i, j):
-    idx = i * 3 + j
-    empty_idx = st.session_state.tiles.index(0)
-    ei, ej = divmod(empty_idx, 3)
-    if abs(i - ei) + abs(j - ej) == 1:
-        st.session_state.tiles[empty_idx], st.session_state.tiles[idx] = (
-            st.session_state.tiles[idx],
-            st.session_state.tiles[empty_idx]
-        )
+def shoot(choice):
+    if st.session_state.bullets <= 0:
+        return
+    if choice == st.session_state.target:
+        st.success(f"🎉 Trúng mục tiêu số {choice}! +1 điểm")
+        st.session_state.score += 1
+        st.session_state.target = random.randint(1, 9)
+    else:
+        st.warning(f"💨 Trượt rồi! Mục tiêu không phải số {choice}.")
+    st.session_state.bullets -= 1
 
-def is_solved(tiles):
-    return tiles[:-1] == list(range(1, 9))
+# ========== Hiển thị thông tin ==========
+st.metric("💥 Đạn còn", st.session_state.bullets)
+st.metric("🏆 Điểm số", st.session_state.score)
 
-# ========== Giao diện ==========
-st.write("Click vào số bên cạnh ô trống để di chuyển.")
-draw_board(st.session_state.tiles)
-
-if is_solved(st.session_state.tiles):
-    st.success("🎉 Chúc mừng! Bạn đã hoàn thành trò chơi!")
-
-if st.button("🔁 Xáo trộn lại"):
-    nums = list(range(1, 9)) + [0]
-    random.shuffle(nums)
-    st.session_state.tiles = nums
-    st.rerun()
+if st.session_state.bullets > 0:
+    draw_targets()
+else:
+    st.error("Hết đạn rồi! 😢")
+    if st.button("🔁 Chơi lại"):
+        st.session_state.score = 0
+        st.session_state.bullets = 5
+        st.session_state.target = random.randint(1, 9)
+        st.rerun()
