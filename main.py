@@ -5,6 +5,35 @@ import random
 st.set_page_config(page_title="🕹️ Game Mini Flappy Bird", layout="wide")
 st.title("🕹️ Game Mini Flappy Bird (Giả lập)")
 
+# ======= CSS Styling ========
+st.markdown(
+    """
+    <style>
+    .game-container {
+        border: 3px dashed #FF5733;
+        padding: 20px;
+        border-radius: 10px;
+        background-color: #fff7e6;
+        font-size: 20px;
+        line-height: 1.4;
+    }
+    .stButton>button {
+        background-color: #FF5733;
+        color: white;
+        border-radius: 8px;
+        font-weight: bold;
+        height: 40px;
+        width: 100%;
+    }
+    .stMetric {
+        font-size: 24px !important;
+        color: #0099cc !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # ========== Khởi tạo trạng thái ==========
 if 'bird_y' not in st.session_state:
     st.session_state.bird_y = 5
@@ -41,7 +70,9 @@ if st.session_state.running:
             flap()
 
     with center:
+        st.markdown('<div class="game-container">', unsafe_allow_html=True)
         draw_game()
+        st.markdown('</div>', unsafe_allow_html=True)
         time.sleep(0.2)
 
     # Update game state
