@@ -35,7 +35,7 @@ def flap():
 # ========== Logic ==========
 if st.session_state.running:
     # Sử dụng area có thể click được để làm "nút bay"
-    if st.button("🖱️ Click vào đây để bay lên", use_container_width=True):
+    if st.button("🖱️ Click ", use_container_width=True):
         flap()
 
     draw_game()
