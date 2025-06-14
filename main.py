@@ -50,6 +50,7 @@ if 'bird_y' not in st.session_state:
     st.session_state.score = 0
     st.session_state.running = True
     st.session_state.jump_request = False
+    st.session_state.difficulty = 1
 
 # ========== Hàm vẽ ==========
 def draw_game():
@@ -61,7 +62,7 @@ def draw_game():
             elif x == st.session_state.pipe_x and not (st.session_state.gap_y <= y <= st.session_state.gap_y+2):
                 row += "🌵"
             else:
-                row += "⬜"
+                row += "⬛"
         st.write(row)
 
 def flap():
@@ -71,23 +72,27 @@ def flap():
 
 # ========== Logic ==========
 if st.session_state.running:
-    # Click bất kỳ đâu trên khung game để gà nhảy
-    container = st.empty()
-    if container.button("", key="flap_click", help="Nhấp để con gà nhảy", use_container_width=True):
-        st.session_state.jump_request = True
+    # Giao diện click toàn khu vực
+    with st.container():
+        left, center, right = st.columns([1, 6, 1])
+        with center:
+            container = st.empty()
+            if container.button("", key="flap_click", help="Click để nhảy", use_container_width=True):
+                st.session_state.jump_request = True
 
-    left, center, right = st.columns([1, 6, 1])
-
-    with center:
-        st.markdown('<div class="game-container">', unsafe_allow_html=True)
-        draw_game()
-        st.markdown('</div>', unsafe_allow_html=True)
-        time.sleep(0.2)
+            st.markdown('<div class="game-container">', unsafe_allow_html=True)
+            draw_game()
+            st.markdown('</div>', unsafe_allow_html=True)
+            time.sleep(0.2)
 
     # Xử lý nhảy trước gravity
     if st.session_state.jump_request:
         flap()
         st.session_state.jump_request = False
+
+    # Tăng độ khó: sau mỗi 5 điểm tăng tốc độ (giảm delay)
+    if st.session_state.score != 0 and st.session_state.score % 5 == 0:
+        st.session_state.difficulty += 1
 
     # Cập nhật trạng thái game
     st.session_state.bird_y += st.session_state.gravity
@@ -105,6 +110,7 @@ if st.session_state.running:
         st.session_state.running = False
 
     st.metric("🏆 Điểm", st.session_state.score)
+    time.sleep(0.2 / st.session_state.difficulty)
     st.rerun()
 else:
     st.error("💥 Game Over! Bạn đạt được {} điểm.".format(st.session_state.score))
@@ -114,4 +120,5 @@ else:
         st.session_state.gap_y = random.randint(2, 7)
         st.session_state.score = 0
         st.session_state.running = True
+        st.session_state.difficulty = 1
         st.rerun()
