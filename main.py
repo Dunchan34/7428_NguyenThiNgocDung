@@ -1,125 +1,108 @@
 import streamlit as st
 import random
+import os
+from PIL import Image
 
-st.set_page_config(page_title="Game Đánh Bài Đơn Giản", layout="wide")
+# ================== CẤU HÌNH ==================
+st.set_page_config(page_title="Game Tiến Lên Đơn Giản", layout="wide")
 
-# ================== INIT ==================
-suits = ['♠', '♥', '♦', '♣']
-values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+suits = ['S', 'H', 'D', 'C']  # ♠ ♥ ♦ ♣
+values = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A', '2']
 
-# Khởi tạo bộ bài
-@st.cache_data(show_spinner=False)
+# ================== HỖ TRỢ ==================
 def init_deck():
     return [v + s for v in values for s in suits]
 
-# Tính điểm đơn giản (Xì dách logic cơ bản)
-def calculate_score(hand):
-    score = 0
-    aces = 0
-    for card in hand:
-        v = card[:-1]
-        if v in ['J', 'Q', 'K']:
-            score += 10
-        elif v == 'A':
-            aces += 1
-        else:
-            score += int(v)
+def card_image(card):
+    path = f"cards/{card}.png"
+    if os.path.exists(path):
+        return Image.open(path)
+    return None
 
-    for _ in range(aces):
-        score += 11 if score + 11 <= 21 else 1
+def sort_hand(hand):
+    order = {v: i for i, v in enumerate(values)}
+    return sorted(hand, key=lambda c: order[c[:-1]])
 
-    return score
-
-# ================== SESSION ==================
+# ================== KHỞI TẠO ==================
 if 'deck' not in st.session_state:
     st.session_state.deck = init_deck()
     random.shuffle(st.session_state.deck)
     st.session_state.player = []
-    st.session_state.dealer = []
-    st.session_state.game_over = False
-    st.session_state.message = ""
+    st.session_state.bot = []
+    st.session_state.turn = 'player'
+    st.session_state.board = []
+    st.session_state.pass_bot = False
+    st.session_state.pass_player = False
+    for _ in range(13):
+        st.session_state.player.append(st.session_state.deck.pop())
+        st.session_state.bot.append(st.session_state.deck.pop())
+    st.session_state.player = sort_hand(st.session_state.player)
+    st.session_state.bot = sort_hand(st.session_state.bot)
 
-# ================== GAME LOGIC ==================
-def deal_card(to_whom):
-    if st.session_state.deck:
-        card = st.session_state.deck.pop()
-        to_whom.append(card)
-
-def reset_game():
-    st.session_state.deck = init_deck()
-    random.shuffle(st.session_state.deck)
-    st.session_state.player = []
-    st.session_state.dealer = []
-    st.session_state.game_over = False
-    st.session_state.message = ""
-
-def check_winner():
-    p_score = calculate_score(st.session_state.player)
-    d_score = calculate_score(st.session_state.dealer)
-
-    if p_score > 21:
-        return "❌ Bạn quá 21 điểm! Dealer thắng."
-    elif d_score > 21:
-        return "✅ Dealer quá 21 điểm! Bạn thắng."
-    elif st.session_state.game_over:
-        if p_score > d_score:
-            return "🏆 Bạn thắng với {} điểm!".format(p_score)
-        elif p_score < d_score:
-            return "😥 Bạn thua! Dealer {} điểm.".format(d_score)
-        else:
-            return "🤝 Hòa điểm!"
-    return ""
-
-# ================== UI ==================
-st.title("🃏 Game Xì Dách Đơn Giản")
+# ================== GIAO DIỆN ==================
+st.title("🃏 Game Tiến Lên Đơn Giản")
 
 col1, col2 = st.columns(2)
 with col1:
-    st.subheader("🧍 Bài của bạn")
-    st.markdown(" ".join(st.session_state.player))
-    st.write("Điểm: ", calculate_score(st.session_state.player))
+    st.subheader("👤 Bài của bạn")
+    selected_cards = st.multiselect("Chọn bài để đánh:", st.session_state.player)
+    images = [card_image(c) for c in st.session_state.player]
+    st.image(images, width=60)
 
 with col2:
-    st.subheader("🧠 Dealer")
-    if st.session_state.game_over:
-        st.markdown(" ".join(st.session_state.dealer))
-        st.write("Điểm: ", calculate_score(st.session_state.dealer))
-    else:
-        st.markdown(f"{st.session_state.dealer[0]} ❓")
+    st.subheader("🤖 Bài của máy (ẩn)")
+    st.write(f"Còn lại: {len(st.session_state.bot)} lá")
 
 st.markdown("---")
+st.subheader("🪙 Bài đang trên bàn:")
+if st.session_state.board:
+    st.image([card_image(c) for c in st.session_state.board], width=60)
+else:
+    st.write("Chưa có bài nào được đánh.")
 
-# ==== GAME BUTTONS ====
-if not st.session_state.player:
-    deal_card(st.session_state.player)
-    deal_card(st.session_state.dealer)
-    deal_card(st.session_state.player)
-    deal_card(st.session_state.dealer)
+# ================== NÚT ĐÁNH ==================
+col3, col4, col5 = st.columns(3)
+with col3:
+    if st.button("🔼 Đánh"):
+        if selected_cards:
+            for c in selected_cards:
+                st.session_state.player.remove(c)
+            st.session_state.board = selected_cards.copy()
+            st.session_state.turn = 'bot'
+            st.session_state.pass_bot = False
+            st.rerun()
 
-# Hành động
-btn_col1, btn_col2, btn_col3 = st.columns(3)
-with btn_col1:
-    if st.button("🃙 Rút bài"):
-        deal_card(st.session_state.player)
-        st.session_state.message = check_winner()
-
-with btn_col2:
-    if st.button("🛑 Dừng lại"):
-        st.session_state.game_over = True
-        while calculate_score(st.session_state.dealer) < 17:
-            deal_card(st.session_state.dealer)
-        st.session_state.message = check_winner()
-
-with btn_col3:
-    if st.button("🔁 Chơi lại"):
-        reset_game()
+with col4:
+    if st.button("❌ Bỏ lượt"):
+        st.session_state.pass_player = True
+        st.session_state.turn = 'bot'
         st.rerun()
 
-# Thông báo kết quả
-if st.session_state.message:
-    st.markdown(f"<h3 style='color:green'>{st.session_state.message}</h3>", unsafe_allow_html=True)
+with col5:
+    if st.button("🔁 Chơi lại"):
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+        st.rerun()
 
-# Bộ bài còn lại
-with st.expander("📦 Bộ bài còn lại"):
-    st.write("Số lá còn lại:", len(st.session_state.deck))
-    st.markdown(" | ".join(st.session_state.deck))
+# ================== LƯỢT CỦA MÁY ==================
+if st.session_state.turn == 'bot':
+    # Bot sẽ đánh 1 lá nhỏ hơn bài đang trên bàn nếu có
+    played = False
+    for card in st.session_state.bot:
+        if not st.session_state.board or values.index(card[:-1]) > values.index(st.session_state.board[-1][:-1]):
+            st.session_state.bot.remove(card)
+            st.session_state.board = [card]
+            st.session_state.turn = 'player'
+            played = True
+            st.session_state.pass_player = False
+            break
+    if not played:
+        st.session_state.pass_bot = True
+        st.session_state.turn = 'player'
+    st.rerun()
+
+# ================== THẮNG ==================
+if len(st.session_state.player) == 0:
+    st.success("🎉 Bạn đã thắng!")
+elif len(st.session_state.bot) == 0:
+    st.error("💀 Bot đã thắng!")
