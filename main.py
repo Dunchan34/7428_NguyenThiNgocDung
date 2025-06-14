@@ -2,7 +2,7 @@ import streamlit as st
 import time
 import random
 
-st.set_page_config(page_title="🕹️ Game Mini Flappy Bird", layout="centered")
+st.set_page_config(page_title="🕹️ Game Mini Flappy Bird", layout="wide")
 st.title("🕹️ Game Mini Flappy Bird (Giả lập)")
 
 # ========== Khởi tạo trạng thái ==========
@@ -24,7 +24,7 @@ def draw_game():
             elif x == st.session_state.pipe_x and not (st.session_state.gap_y <= y <= st.session_state.gap_y+2):
                 row += "🟩"
             else:
-                row += "▫️"  # thay vì ⬛
+                row += "▫️"
         st.write(row)
 
 def flap():
@@ -34,12 +34,15 @@ def flap():
 
 # ========== Logic ==========
 if st.session_state.running:
-    # Sử dụng area có thể click được để làm "nút bay"
-    if st.button("🖱️ Click ", use_container_width=True):
-        flap()
+    left, center, right = st.columns([1, 6, 1])
 
-    draw_game()
-    time.sleep(0.2)
+    with right:
+        if st.button("⬆️", key="flap_button"):
+            flap()
+
+    with center:
+        draw_game()
+        time.sleep(0.2)
 
     # Update game state
     st.session_state.bird_y += st.session_state.gravity
