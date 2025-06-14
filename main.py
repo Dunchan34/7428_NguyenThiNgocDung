@@ -34,14 +34,12 @@ def flap():
 
 # ========== Logic ==========
 if st.session_state.running:
-    col1, col2 = st.columns([1, 4])
-    with col1:
-        if st.button("⬆️ Bay lên"):
-            flap()
+    # Sử dụng area có thể click được để làm "nút bay"
+    if st.button("🖱️ Click vào đây để bay lên", use_container_width=True):
+        flap()
 
-    with col2:
-        draw_game()
-        time.sleep(0.2)
+    draw_game()
+    time.sleep(0.2)
 
     # Update game state
     st.session_state.bird_y += st.session_state.gravity
@@ -62,7 +60,7 @@ if st.session_state.running:
     st.rerun()
 else:
     st.error("💥 Game Over! Bạn đạt được {} điểm.".format(st.session_state.score))
-    if st.button("🔁 Chơi lại"):
+    if st.button("🔁 Chơi lại", use_container_width=True):
         st.session_state.bird_y = 5
         st.session_state.pipe_x = 10
         st.session_state.gap_y = random.randint(2, 7)
