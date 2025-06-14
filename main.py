@@ -1,46 +1,41 @@
 import streamlit as st
+import time
 import random
 
-st.set_page_config(page_title="🔫 Game Bắn Súng", layout="centered")
-st.title("🔫 Game Bắn Súng Đơn Giản")
+st.set_page_config(page_title="⚽ Game Đánh Banh", layout="centered")
+st.title("⚽ Game Đánh Banh Chạy Chạy")
 
 # ========== Khởi tạo trạng thái ==========
-if 'target' not in st.session_state:
+if 'ball_position' not in st.session_state:
     st.session_state.score = 0
-    st.session_state.bullets = 5
-    st.session_state.target = random.randint(1, 9)
+    st.session_state.ball_position = random.randint(0, 4)
+    st.session_state.running = True
 
-# ========== Hàm hỗ trợ ==========
-def draw_targets():
-    st.subheader("🎯 Chọn mục tiêu để bắn")
-    cols = st.columns(3)
-    for i in range(3):
-        for j in range(3):
-            idx = i * 3 + j + 1
-            if cols[j].button(f"{idx}", key=f"target-{idx}"):
-                shoot(idx)
+# ========== Hiển thị bảng ==========
+def draw_field():
+    cols = st.columns(5)
+    for i in range(5):
+        if i == st.session_state.ball_position:
+            cols[i].button("⚽", key=f"ball-{i}", on_click=hit_ball, args=(i,))
+        else:
+            cols[i].button("", key=f"empty-{i}", disabled=True)
 
-def shoot(choice):
-    if st.session_state.bullets <= 0:
-        return
-    if choice == st.session_state.target:
-        st.success(f"🎉 Trúng mục tiêu số {choice}! +1 điểm")
+def hit_ball(pos):
+    if pos == st.session_state.ball_position:
         st.session_state.score += 1
-        st.session_state.target = random.randint(1, 9)
+        st.session_state.ball_position = random.randint(0, 4)
     else:
-        st.warning(f"💨 Trượt rồi! Mục tiêu không phải số {choice}.")
-    st.session_state.bullets -= 1
+        st.session_state.running = False
 
-# ========== Hiển thị thông tin ==========
-st.metric("💥 Đạn còn", st.session_state.bullets)
-st.metric("🏆 Điểm số", st.session_state.score)
-
-if st.session_state.bullets > 0:
-    draw_targets()
+# ========== Vòng lặp ==========
+if st.session_state.running:
+    draw_field()
+    st.metric("🏆 Điểm số", st.session_state.score)
 else:
-    st.error("Hết đạn rồi! 😢")
+    st.error("💥 Trượt rồi! Kết thúc trò chơi.")
+    st.metric("🏆 Tổng điểm", st.session_state.score)
     if st.button("🔁 Chơi lại"):
         st.session_state.score = 0
-        st.session_state.bullets = 5
-        st.session_state.target = random.randint(1, 9)
+        st.session_state.ball_position = random.randint(0, 4)
+        st.session_state.running = True
         st.rerun()
