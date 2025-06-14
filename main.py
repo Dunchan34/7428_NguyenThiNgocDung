@@ -93,4 +93,4 @@ if st.session_state.message:
 st.markdown("---")
 if st.button("🔁 Chơi lại", use_container_width=True):
     st.session_state.clear()
-    st.experimental_rerun()
+    st.rerun()
