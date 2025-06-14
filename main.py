@@ -3,36 +3,42 @@ import time
 import random
 
 st.set_page_config(page_title="🕹️ Game Mini Flappy Bird", layout="wide")
-st.title("🕹️ Game Mini Flappy Bird (Giả lập)")
-
-# ======= CSS Styling ========
-st.markdown(
-    """
+st.markdown("""
     <style>
+    body {
+        background: linear-gradient(to bottom, #fbc2eb 0%, #a6c1ee 100%);
+    }
     .game-container {
-        border: 3px dashed #FF5733;
-        padding: 20px;
-        border-radius: 10px;
-        background-color: #fff7e6;
-        font-size: 20px;
-        line-height: 1.4;
+        border: 4px solid #ff4b1f;
+        padding: 25px;
+        border-radius: 15px;
+        background-color: #ffffffcc;
+        font-size: 22px;
+        line-height: 1.6;
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.2);
     }
     .stButton>button {
-        background-color: #FF5733;
+        background: linear-gradient(90deg, #ff416c, #ff4b2b);
         color: white;
-        border-radius: 8px;
+        border-radius: 12px;
         font-weight: bold;
-        height: 40px;
+        font-size: 16px;
+        height: 45px;
         width: 100%;
+        transition: all 0.2s ease-in-out;
+    }
+    .stButton>button:hover {
+        transform: scale(1.05);
     }
     .stMetric {
-        font-size: 24px !important;
-        color: #0099cc !important;
+        font-size: 28px !important;
+        color: #2b5876 !important;
+        font-weight: bold;
     }
     </style>
-    """,
-    unsafe_allow_html=True
-)
+""", unsafe_allow_html=True)
+
+st.markdown("""<h1 style='text-align: center; color: #ff416c;'>🐤 Game Mini Flappy Bird</h1>""", unsafe_allow_html=True)
 
 # ========== Khởi tạo trạng thái ==========
 if 'bird_y' not in st.session_state:
@@ -51,9 +57,9 @@ def draw_game():
             if x == 2 and y == st.session_state.bird_y:
                 row += "🐤"
             elif x == st.session_state.pipe_x and not (st.session_state.gap_y <= y <= st.session_state.gap_y+2):
-                row += "🟩"
+                row += "🌵"
             else:
-                row += "▫️"
+                row += "🟦"
         st.write(row)
 
 def flap():
