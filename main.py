@@ -19,17 +19,23 @@ st.markdown("""
         cursor: pointer;
     }
     .stButton>button {
-        background: linear-gradient(90deg, #ff416c, #ff4b2b);
-        color: white;
+        background: white;
+        color: #ff4b2b;
         border-radius: 12px;
         font-weight: bold;
         font-size: 16px;
         height: 45px;
         width: 100%;
         transition: all 0.2s ease-in-out;
+        border: 2px solid #ff4b2b;
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
     }
     .stButton>button:hover {
         transform: scale(1.05);
+        background-color: #ffe3dc;
     }
     .stMetric {
         font-size: 28px !important;
