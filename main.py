@@ -109,6 +109,6 @@ with st.expander("🗃️ Xem bộ bài còn lại"):
 
 # ==== CHƠI LẠI ====
 st.markdown("---")
-if st.button("🔁 Chơi lại", use_container_width=True):
+if st.button("Ván bài mới ", use_container_width=True):
     st.session_state.clear()
     st.rerun()
