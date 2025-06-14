@@ -72,12 +72,12 @@ def flap():
 
 # ========== Logic ==========
 if st.session_state.running:
-    # Giao diện click toàn khu vực
+    # Giao diện click toàn khu vực + nút riêng
     with st.container():
         left, center, right = st.columns([1, 6, 1])
         with center:
             container = st.empty()
-            if container.button("", key="flap_click", help="Click để nhảy", use_container_width=True):
+            if container.button("⬆️ Nhảy lên", key="flap_click", help="Nhấn để gà nhảy", use_container_width=True):
                 st.session_state.jump_request = True
 
             st.markdown('<div class="game-container">', unsafe_allow_html=True)
