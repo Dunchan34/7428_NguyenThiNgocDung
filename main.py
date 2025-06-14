@@ -18,22 +18,22 @@ st.markdown("""
         box-shadow: 0px 4px 12px rgba(0,0,0,0.2);
         cursor: pointer;
     }
-    .stButton>button {
+    .stButton.jump-btn>button {
         background: white;
         color: #ff4b2b;
         border-radius: 12px;
         font-weight: bold;
         font-size: 16px;
         height: 45px;
-        width: 100%;
+        width: 120px;
         transition: all 0.2s ease-in-out;
         border: 2px solid #ff4b2b;
         position: fixed;
-        top: 20px;
+        bottom: 20px;
         right: 20px;
         z-index: 1000;
     }
-    .stButton>button:hover {
+    .stButton.jump-btn>button:hover {
         transform: scale(1.05);
         background-color: #ffe3dc;
     }
@@ -82,14 +82,16 @@ if st.session_state.running:
     with st.container():
         left, center, right = st.columns([1, 6, 1])
         with center:
-            container = st.empty()
-            if container.button("⬆️ Nhảy lên", key="flap_click", help="Nhấn để gà nhảy", use_container_width=True):
-                st.session_state.jump_request = True
-
             st.markdown('<div class="game-container">', unsafe_allow_html=True)
             draw_game()
             st.markdown('</div>', unsafe_allow_html=True)
             time.sleep(0.2)
+
+    # Nút nhảy cố định góc dưới phải
+    with st.container():
+        with st.container():
+            if st.button("⬆️ Nhảy lên", key="flap_click", help="Nhấn để gà nhảy", type="secondary"):
+                st.session_state.jump_request = True
 
     # Xử lý nhảy trước gravity
     if st.session_state.jump_request:
