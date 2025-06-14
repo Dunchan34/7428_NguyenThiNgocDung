@@ -1,114 +1,125 @@
 import streamlit as st
 import random
 
-# ======================= HỖ TRỢ =======================
-def create_deck():
-    suits = ['♠', '♥', '♦', '♣']
-    ranks = ['A'] + [str(n) for n in range(2, 11)] + ['J', 'Q', 'K']
-    deck = [rank + suit for rank in ranks for suit in suits]
-    random.shuffle(deck)
-    return deck
+st.set_page_config(page_title="Game Đánh Bài Đơn Giản", layout="wide")
 
+# ================== INIT ==================
+suits = ['♠', '♥', '♦', '♣']
+values = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+
+# Khởi tạo bộ bài
+@st.cache_data(show_spinner=False)
+def init_deck():
+    return [v + s for v in values for s in suits]
+
+# Tính điểm đơn giản (Xì dách logic cơ bản)
 def calculate_score(hand):
     score = 0
     aces = 0
     for card in hand:
-        rank = card[:-1]
-        if rank in ['J', 'Q', 'K']:
+        v = card[:-1]
+        if v in ['J', 'Q', 'K']:
             score += 10
-        elif rank == 'A':
+        elif v == 'A':
             aces += 1
-            score += 11
         else:
-            score += int(rank)
-    while score > 21 and aces:
-        score -= 10
-        aces -= 1
+            score += int(v)
+
+    for _ in range(aces):
+        score += 11 if score + 11 <= 21 else 1
+
     return score
 
-def show_hand(title, hand, score, is_dealer=False, reveal=False):
-    col = "#FEEBCB" if is_dealer else "#CBF5F2"
-    with st.container():
-        st.markdown(f"""
-            <div style="background-color:{col}; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
-                <h5>{title}</h5>
-                <p style="font-size: 24px;">{" | ".join(hand) if reveal or not is_dealer else "🂠 | " + hand[1]}</p>
-                <strong>Điểm: {score if reveal or not is_dealer else '??'} </strong>
-            </div>
-        """, unsafe_allow_html=True)
-
-# ======================= GIAO DIỆN =======================
-
-st.set_page_config(page_title="🃏 Xì Dách - Blackjack", layout="centered")
-st.markdown("<h1 style='text-align: center; color: #FFC107;'>🃏 Xì Dách (Blackjack)</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center;'>Hãy cố gắng đạt càng gần 21 điểm càng tốt. Nhưng đừng quá 21 nhé!</p>", unsafe_allow_html=True)
-
-# ==== INIT SESSION ====
-if "deck" not in st.session_state:
-    st.session_state.deck = create_deck()
-    st.session_state.player_hand = [st.session_state.deck.pop(), st.session_state.deck.pop()]
-    st.session_state.dealer_hand = [st.session_state.deck.pop(), st.session_state.deck.pop()]
+# ================== SESSION ==================
+if 'deck' not in st.session_state:
+    st.session_state.deck = init_deck()
+    random.shuffle(st.session_state.deck)
+    st.session_state.player = []
+    st.session_state.dealer = []
     st.session_state.game_over = False
     st.session_state.message = ""
 
-# ==== DISPLAY HAND ====
-player_score = calculate_score(st.session_state.player_hand)
-dealer_score = calculate_score(st.session_state.dealer_hand)
+# ================== GAME LOGIC ==================
+def deal_card(to_whom):
+    if st.session_state.deck:
+        card = st.session_state.deck.pop()
+        to_whom.append(card)
 
-show_hand("🧑 Bạn", st.session_state.player_hand, player_score, is_dealer=False)
-show_hand("🤖 Nhà cái", st.session_state.dealer_hand, dealer_score, is_dealer=True, reveal=st.session_state.game_over)
+def reset_game():
+    st.session_state.deck = init_deck()
+    random.shuffle(st.session_state.deck)
+    st.session_state.player = []
+    st.session_state.dealer = []
+    st.session_state.game_over = False
+    st.session_state.message = ""
 
-# ==== NÚT CHƠI ====
-if not st.session_state.game_over:
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("🃏 Rút thêm bài", use_container_width=True):
-            st.session_state.player_hand.append(st.session_state.deck.pop())
-            player_score = calculate_score(st.session_state.player_hand)
-            if player_score > 21:
-                st.session_state.message = f"💥 Bạn bị quắc ({player_score} điểm)! Bạn thua!"
-                st.session_state.game_over = True
-    with col2:
-        if st.button("✋ Dằn bài", use_container_width=True):
-            # Dealer chơi
-            while dealer_score < 17:
-                st.session_state.dealer_hand.append(st.session_state.deck.pop())
-                dealer_score = calculate_score(st.session_state.dealer_hand)
+def check_winner():
+    p_score = calculate_score(st.session_state.player)
+    d_score = calculate_score(st.session_state.dealer)
 
-            player_score = calculate_score(st.session_state.player_hand)
-            if dealer_score > 21 or player_score > dealer_score:
-                st.session_state.message = f"🎉 Bạn thắng! ({player_score} vs {dealer_score})"
-            elif dealer_score > player_score:
-                st.session_state.message = f"😢 Bạn thua... ({player_score} vs {dealer_score})"
-            else:
-                st.session_state.message = f"🤝 Hòa nhau ({player_score} điểm)"
-            st.session_state.game_over = True
+    if p_score > 21:
+        return "❌ Bạn quá 21 điểm! Dealer thắng."
+    elif d_score > 21:
+        return "✅ Dealer quá 21 điểm! Bạn thắng."
+    elif st.session_state.game_over:
+        if p_score > d_score:
+            return "🏆 Bạn thắng với {} điểm!".format(p_score)
+        elif p_score < d_score:
+            return "😥 Bạn thua! Dealer {} điểm.".format(d_score)
+        else:
+            return "🤝 Hòa điểm!"
+    return ""
 
-# ==== THÔNG BÁO KẾT QUẢ ====
+# ================== UI ==================
+st.title("🃏 Game Xì Dách Đơn Giản")
+
+col1, col2 = st.columns(2)
+with col1:
+    st.subheader("🧍 Bài của bạn")
+    st.markdown(" ".join(st.session_state.player))
+    st.write("Điểm: ", calculate_score(st.session_state.player))
+
+with col2:
+    st.subheader("🧠 Dealer")
+    if st.session_state.game_over:
+        st.markdown(" ".join(st.session_state.dealer))
+        st.write("Điểm: ", calculate_score(st.session_state.dealer))
+    else:
+        st.markdown(f"{st.session_state.dealer[0]} ❓")
+
+st.markdown("---")
+
+# ==== GAME BUTTONS ====
+if not st.session_state.player:
+    deal_card(st.session_state.player)
+    deal_card(st.session_state.dealer)
+    deal_card(st.session_state.player)
+    deal_card(st.session_state.dealer)
+
+# Hành động
+btn_col1, btn_col2, btn_col3 = st.columns(3)
+with btn_col1:
+    if st.button("🃙 Rút bài"):
+        deal_card(st.session_state.player)
+        st.session_state.message = check_winner()
+
+with btn_col2:
+    if st.button("🛑 Dừng lại"):
+        st.session_state.game_over = True
+        while calculate_score(st.session_state.dealer) < 17:
+            deal_card(st.session_state.dealer)
+        st.session_state.message = check_winner()
+
+with btn_col3:
+    if st.button("🔁 Chơi lại"):
+        reset_game()
+        st.rerun()
+
+# Thông báo kết quả
 if st.session_state.message:
-    st.markdown("---")
-    st.markdown(f"<div style='text-align:center; font-size: 24px; font-weight: bold; color: green;'>{st.session_state.message}</div>", unsafe_allow_html=True)
-    # ==== CHƠI LẠI ====
-st.markdown("---")
-if st.button("🔁 Chơi lại", use_container_width=True):
-    st.session_state.clear()
-    st.rerun()
+    st.markdown(f"<h3 style='color:green'>{st.session_state.message}</h3>", unsafe_allow_html=True)
 
-# ==== HIỂN THỊ BỘ BÀI CÒN LẠI ====
-with st.expander("🗃️ Xem bộ bài còn lại"):
-    remaining = st.session_state.deck
-    st.markdown(f"Số lá còn lại: **{len(remaining)}**")
-    if len(remaining) > 0:
-        formatted = " | ".join(remaining)
-        st.markdown(f"""
-        <div style='background-color:#f5f5f5; padding:10px; border-radius:5px;'>
-            {formatted}
-        </div>
-        """, unsafe_allow_html=True)
-
-
-# ==== CHƠI LẠI ====
-st.markdown("---")
-if st.button("Ván bài mới ", use_container_width=True):
-    st.session_state.clear()
-    st.rerun()
+# Bộ bài còn lại
+with st.expander("📦 Bộ bài còn lại"):
+    st.write("Số lá còn lại:", len(st.session_state.deck))
+    st.markdown(" | ".join(st.session_state.deck))
