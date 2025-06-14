@@ -88,6 +88,24 @@ if not st.session_state.game_over:
 if st.session_state.message:
     st.markdown("---")
     st.markdown(f"<div style='text-align:center; font-size: 24px; font-weight: bold; color: green;'>{st.session_state.message}</div>", unsafe_allow_html=True)
+    # ==== CHƠI LẠI ====
+st.markdown("---")
+if st.button("🔁 Chơi lại", use_container_width=True):
+    st.session_state.clear()
+    st.rerun()
+
+# ==== HIỂN THỊ BỘ BÀI CÒN LẠI ====
+with st.expander("🗃️ Xem bộ bài còn lại"):
+    remaining = st.session_state.deck
+    st.markdown(f"Số lá còn lại: **{len(remaining)}**")
+    if len(remaining) > 0:
+        formatted = " | ".join(remaining)
+        st.markdown(f"""
+        <div style='background-color:#f5f5f5; padding:10px; border-radius:5px;'>
+            {formatted}
+        </div>
+        """, unsafe_allow_html=True)
+
 
 # ==== CHƠI LẠI ====
 st.markdown("---")
