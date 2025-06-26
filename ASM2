@@ -1,0 +1,29 @@
+import pandas as pd
+import networkx as nx
+import folium
+from sklearn.cluster import KMeans
+
+data = pd.read_csv('delivery_data.csv')  # GPS and delivery data
+data = data.dropna(subset=['latitude', 'longitude'])  # Remove missing values
+data = data.drop_duplicates(subset=['location_id'])  # Remove duplicates
+
+coords = data[['latitude', 'longitude']].values
+kmeans = KMeans(n_clusters=3, random_state=0).fit(coords)
+data['cluster'] = kmeans.labels_
+
+G = nx.Graph()
+for _, row in data.iterrows():
+    G.add_node(row['location_id'], pos=(row['latitude'], row['longitude']))
+    # Add edges with distances (hypothetical)
+    G.add_edge('Warehouse', row['location_id'], weight=row['distance'])
+
+shortest_path = nx.dijkstra_path(G, 'Warehouse', 'Customer1', weight='distance')
+print("Optimized Route:", shortest_path)
+
+map_center = [data['latitude'].mean(), data['longitude'].mean()]
+m = folium.Map(location=map_center, zoom_start=10)
+for _, row in data.iterrows():
+    folium.Marker([row['latitude'], row['longitude']], popup=row['location_id']).add_to(m)
+m.save('routes.html')
+
+data.to_csv('optimized_routes.csv')  # For Power BI dashboard
