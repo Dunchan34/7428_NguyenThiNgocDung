@@ -1,7 +1,6 @@
 import streamlit as st
 import time
 import random
-
 st.set_page_config(page_title="🕹️ Game Mini Flappy Bird", layout="wide")
 st.markdown("""
     <style>
